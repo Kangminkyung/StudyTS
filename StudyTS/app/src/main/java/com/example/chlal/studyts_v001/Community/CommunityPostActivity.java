@@ -1,28 +1,43 @@
 package com.example.chlal.studyts_v001.Community;
 
-import android.app.ActionBar;
-import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
+import android.widget.EditText;
 
-import com.example.chlal.studyts_v001.MainActivity;
+import com.example.chlal.studyts_v001.Constant;
 import com.example.chlal.studyts_v001.R;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+
 public class CommunityPostActivity extends AppCompatActivity {
+
+    // attributes
+    private EditText mTitle;
+    private EditText mContent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_community_post);
+        setTitle("New Post");
 //        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-    }
-
-    public void post(View v){//db에 저장 구현
+        mTitle = findViewById(R.id.title_editText);
+        mContent = findViewById(R.id.content_editText);
 
     }
 
@@ -38,11 +53,52 @@ public class CommunityPostActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.update_post:
-                Toast.makeText(this, "업로드 성공", Toast.LENGTH_SHORT).show();
-                break;
+        if (item.getItemId() == R.id.update_post) {
+            PostConnection connection = new PostConnection();
+            connection.execute();
         }
         return true;
+    }
+    private class  PostConnection extends AsyncTask<JSONObject, JSONObject, JSONObject> {
+        JSONObject response;
+        @Override
+        protected JSONObject doInBackground(JSONObject... jsonObjects) {
+            try {
+                JSONObject json = new JSONObject();
+                json.put("title", mTitle.getText().toString());
+                json.put("content", mContent.getText().toString());
+                json.put("username", getSharedPreferences("Session", MODE_PRIVATE).getString("username", ""));
+
+                URL url = new URL(Constant.POST_UPLOAD_URL);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+                connection.setRequestProperty("Accept", "application/json");
+                connection.setRequestProperty("Content-Type", "application/json");
+                connection.setDoInput(true);
+                connection.setDoOutput(true);
+                connection.setRequestMethod("POST");
+                connection.connect();
+
+                OutputStream writer = connection.getOutputStream();
+                writer.write(json.toString().getBytes());
+                writer.flush();
+                writer.close();
+
+                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                String line = "";
+                StringBuilder buffer = new StringBuilder();
+                while ((line = reader.readLine()) != null) buffer.append(line);
+
+                response = new JSONObject(buffer.toString().trim());
+            } catch(JSONException | IOException e) {
+                e.printStackTrace();
+            }
+            return response;
+        }
+
+        @Override
+        protected void onPostExecute(JSONObject jsonObject) {
+            super.onPostExecute(jsonObject);
+        }
     }
 }

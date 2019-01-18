@@ -14,12 +14,10 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 
 import com.example.chlal.studyts_v001.Community.CommunityFragment;
 import com.example.chlal.studyts_v001.Community.CommunityPostActivity;
 import com.example.chlal.studyts_v001.Study.DoneFragment;
-import com.example.chlal.studyts_v001.Study.Part.StudyPart1Activity;
 import com.example.chlal.studyts_v001.Study.Part.StudyPart2Activity;
 import com.example.chlal.studyts_v001.Study.StudyFragment;
 
